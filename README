@@ -1,69 +1,58 @@
-How to create the db in mysql (Configure db in db_conn.py):
+# Library Management System
 
--- Drop the tables if they exist
-DROP TABLE IF EXISTS Borrowings;
-DROP TABLE IF EXISTS Borrowers;
-DROP TABLE IF EXISTS BookCopies;
-DROP TABLE IF EXISTS Books;
-DROP TABLE IF EXISTS Publishers;
-DROP TABLE IF EXISTS Genres;
-DROP TABLE IF EXISTS Authors;
+This project is a library management system that allows users to explore the library's collection and manage book borrowings. It uses a MySQL database to store data about books, authors, genres, publishers, book copies, and borrowings.
 
--- Create the Authors table
-CREATE TABLE Authors (
-  author_id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL
-);
+## Features
 
--- Create the Genres table
-CREATE TABLE Genres (
-  genre_id INT PRIMARY KEY AUTO_INCREMENT,
-  genre_name VARCHAR(100) NOT NULL
-);
+- **Data Report:** Users can explore the library's collection through a data report that displays information about book titles, authors, publishers, release dates, genres, and the number of copies available and checked out. The data report can be filtered based on user input.
 
--- Create the Publishers table
-CREATE TABLE Publishers (
-  publisher_id INT PRIMARY KEY AUTO_INCREMENT,
-  publisher_name VARCHAR(100) NOT NULL
-);
+- **Book Management:** The system allows for the addition of new books to the library's collection.
 
--- Create the Books table
-CREATE TABLE Books (
-  book_id INT PRIMARY KEY AUTO_INCREMENT,
-  title VARCHAR(100) NOT NULL,
-  author_id INT,
-  genre_id INT,
-  publisher_id INT,
-  published_date DATE,
-  FOREIGN KEY (author_id) REFERENCES Authors(author_id),
-  FOREIGN KEY (genre_id) REFERENCES Genres(genre_id),
-  FOREIGN KEY (publisher_id) REFERENCES Publishers(publisher_id)
-);
+- **Borrowing Management:** The system also manages book borrowings, keeping track of which copies are checked out and when they are returned.
 
--- Create the BookCopies table
-CREATE TABLE BookCopies (
-  copy_id INT,
-  book_id INT,
-  PRIMARY KEY (copy_id, book_id),
-  FOREIGN KEY (book_id) REFERENCES Books(book_id)
-);
+## Setup
 
--- Create the Borrowers table
-CREATE TABLE Borrowers (
-  borrower_id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL,
-  phone_number VARCHAR(15) NOT NULL
-);
+To set up the project, follow these steps:
 
--- Create the Borrowings table
-CREATE TABLE Borrowings (
-  borrowing_id INT PRIMARY KEY AUTO_INCREMENT,
-  copy_id INT,
-  book_id INT,
-  borrower_id INT,
-  borrow_date DATE,
-  return_date DATE,
-  FOREIGN KEY (copy_id, book_id) REFERENCES BookCopies(copy_id, book_id),
-  FOREIGN KEY (borrower_id) REFERENCES Borrowers(borrower_id)
-);
+1. Clone the repository.
+
+    ```bash
+    git clone https://github.com/soham-sharma/LibraryManagementSystem.git
+    cd LibraryManagementSystem
+    ```
+
+2. Install the necessary Python libraries.
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3. Set up the MySQL database.
+
+    - Install MySQL Server and MySQL Workbench.
+    - Create a new schema in MySQL Workbench and run the SQL scripts in the `sql` directory to create the necessary tables.
+
+4. Update the database connection details in `app.py`.
+
+    ```python
+    db = mysql.connector.connect(
+        host="localhost",
+        user="yourusername",
+        password="yourpassword",
+        database="yourdatabase",
+    )
+    ```
+
+5. Run the Streamlit app.
+
+    ```bash
+    streamlit run app.py
+    ```
+
+## Usage
+
+To use the library management system, open the Streamlit app in your web browser. You can explore the library's collection through the data report and manage book borrowings.
+
+## Future Work
+
+In future iterations, I plan to add more advanced visualizations to the library management system to provide users with deeper insights into the library's operations.
