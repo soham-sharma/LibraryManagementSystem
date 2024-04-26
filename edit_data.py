@@ -21,7 +21,7 @@ def add_author():
         db.commit()
 
         st.success("Author added successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def edit_delete_author():
@@ -46,7 +46,7 @@ def edit_delete_author():
         db.commit()
 
         st.success("Author edited successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
     if st.button("Delete Author"):
         # Prepare the SQL statement
@@ -58,7 +58,7 @@ def edit_delete_author():
         db.commit()
 
         st.success("Author deleted successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def add_genre():
@@ -75,7 +75,7 @@ def add_genre():
         db.commit()
 
         st.success("Genre added successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def edit_delete_genre():
@@ -99,7 +99,7 @@ def edit_delete_genre():
         db.commit()
 
         st.success("Genre edited successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
     if st.button("Delete Genre"):
         # Prepare the SQL statement
@@ -111,7 +111,7 @@ def edit_delete_genre():
         db.commit()
 
         st.success("Genre deleted successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def add_publisher():
@@ -128,7 +128,7 @@ def add_publisher():
         db.commit()
 
         st.success("Publisher added successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def edit_delete_publisher():
@@ -152,7 +152,7 @@ def edit_delete_publisher():
         db.commit()
 
         st.success("Publisher edited successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
     if st.button("Delete Publisher"):
         # Prepare the SQL statement
@@ -164,7 +164,7 @@ def edit_delete_publisher():
         db.commit()
 
         st.success("Publisher deleted successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 def view_authors_genres_publishers():
     """

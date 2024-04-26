@@ -65,7 +65,7 @@ def add_book_copies():
             db.commit()
 
             st.success(f"Added {num_new_copies} copies to the book.")
-            st.experimental_rerun()
+            st.rerun()
 
 
 def remove_book_copies():
@@ -116,7 +116,7 @@ def remove_book_copies():
             db.commit()
 
             st.success(f"Removed {len(selected_copies)} copies from the book.")
-            st.experimental_rerun()
+            st.rerun()
 
     st.write("Note: Copies that are currently checked out cannot be removed.")
 

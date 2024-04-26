@@ -14,7 +14,7 @@ def add_borrower(name, phone_number):
     values = (name, phone_number)
     cursor.execute(add_borrower_query, values)
     db.commit()
-    st.experimental_rerun()
+    st.rerun()
 
 
 def edit_borrower(borrower_id, name, phone_number):
@@ -25,7 +25,7 @@ def edit_borrower(borrower_id, name, phone_number):
     values = (name, phone_number, borrower_id)
     cursor.execute(edit_borrower_query, values)
     db.commit()
-    st.experimental_rerun()
+    st.rerun()
 
 
 def delete_borrower(borrower_id):
@@ -36,7 +36,7 @@ def delete_borrower(borrower_id):
     values = (borrower_id,)
     cursor.execute(delete_borrower_query, values)
     db.commit()
-    st.experimental_rerun()
+    st.rerun()
 
 def view_borrowers():
     """

@@ -60,7 +60,7 @@ def create_new_borrowing():
         db.commit()
 
         st.success("Borrowing created successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def resolve_borrowing():
@@ -109,7 +109,7 @@ def resolve_borrowing():
         db.commit()
 
         st.success("Borrowing resolved successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 def extend_borrowing():
@@ -160,7 +160,7 @@ def extend_borrowing():
         db.commit()
 
         st.success("Borrowing extended successfully!")
-        st.experimental_rerun()
+        st.rerun()
 
 
 

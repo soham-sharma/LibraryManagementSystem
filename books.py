@@ -123,7 +123,7 @@ def edit_delete_book():
             db.commit()
 
             st.success("Book updated successfully!")
-            st.experimental_rerun()
+            st.rerun()
 
         if st.button("Delete Book"):
             # Prepare the SQL statement
@@ -135,7 +135,7 @@ def edit_delete_book():
             db.commit()
 
             st.success("Book deleted successfully!")
-            st.experimental_rerun()
+            st.rerun()
 
 
 def main():
