@@ -9,12 +9,3 @@ def create_conn():
         database=st.secrets["database"]["database"],
     )
     return conn
-
-# main for testing
-if __name__ == "__main__":
-    conn = create_conn()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Books")
-    books = cursor.fetchall()
-    print(books)
-    conn.close()
