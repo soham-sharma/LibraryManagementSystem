@@ -101,7 +101,7 @@ def combined_data_report():
     st.table(df_filtered)
 
 def main():
-    st.title("Data Report")
+    st.title("Checkout out Books Data Report")
     combined_data_report()
 
 if __name__ == "__main__":
