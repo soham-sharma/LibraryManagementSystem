@@ -32,7 +32,7 @@ To set up the project, follow these steps:
     - Install MySQL Server and MySQL Workbench.
     - Create a new schema in MySQL Workbench and run the SQL scripts in the `sql` directory to create the necessary tables.
 
-4. Update the database connection details in `app.py`.
+4. Update the database connection details in `db_conn.py`.
 
     ```python
     db = mysql.connector.connect(
