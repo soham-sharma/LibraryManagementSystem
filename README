@@ -1,4 +1,5 @@
-Creating db:
+How to create the db in mysql (Configure db in db_conn.py):
+
 -- Drop the tables if they exist
 DROP TABLE IF EXISTS Borrowings;
 DROP TABLE IF EXISTS Borrowers;
@@ -66,13 +67,3 @@ CREATE TABLE Borrowings (
   FOREIGN KEY (copy_id, book_id) REFERENCES BookCopies(copy_id, book_id),
   FOREIGN KEY (borrower_id) REFERENCES Borrowers(borrower_id)
 );
-
-
-Notes:
-	* add another field to author (birth data) and publisher (Mailing address)
-
-mqsql
-root pwd: 1234
-user:
-	username: user
-	pwd: 1234
