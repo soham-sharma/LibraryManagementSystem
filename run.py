@@ -583,17 +583,11 @@ def main_data_report():
 def generate_data_report():
     st.title("Checked Out Books Data Report")
 
-    # Fetch data from multiple tables
-    cursor.execute("""
-        SELECT b.title, a.name AS author, g.genre_name, p.publisher_name, bc.copy_id, br.borrow_date, br.return_date, bo.name AS borrower
-        FROM Borrowings br
-        INNER JOIN BookCopies bc ON br.copy_id = bc.copy_id AND br.book_id = bc.book_id
-        INNER JOIN Books b ON bc.book_id = b.book_id
-        INNER JOIN Authors a ON b.author_id = a.author_id
-        INNER JOIN Genres g ON b.genre_id = g.genre_id
-        INNER JOIN Publishers p ON b.publisher_id = p.publisher_id
-        INNER JOIN Borrowers bo ON br.borrower_id = bo.borrower_id
-    """)
+    # Call the stored procedure
+    cursor.callproc('GenerateDataReport')
+
+    # Fetch data from the temporary table
+    cursor.execute("SELECT * FROM TempReport")
     data = cursor.fetchall()
 
     # Prepare data for the table
@@ -611,8 +605,51 @@ def generate_data_report():
             "Borrower": borrower
         })
 
-    # Display the data in a table
-    st.table(table_data)
+    # # Display the data in a table
+    # st.table(table_data)
+    # Create a DataFrame from the fetched data
+    df = pd.DataFrame(table_data)
+
+    # Convert the 'Borrow Date' and 'Return Date' columns to datetime
+    df['Borrow Date'] = pd.to_datetime(df['Borrow Date'])
+    df['Return Date'] = pd.to_datetime(df['Return Date'])
+
+    # Create input widgets for the filters
+    author_filter = st.text_input("Author")
+    publisher_filter = st.text_input("Publisher")
+    title_filter = st.text_input("Book Title")
+    genre_filter = st.selectbox("Genre", options=[""] + df["Genre"].unique().tolist(), index=0)
+    borrow_date_filter = st.date_input("Borrow Date", value=[df["Borrow Date"].min(), df["Borrow Date"].max()])
+    return_date_filter = st.date_input("Return Date", value=[df["Return Date"].min(), df["Return Date"].max()])
+
+    # Filter the DataFrame based on the input widgets
+    df_filtered = df[df["Author"].str.contains(author_filter, case=False) &
+                     df["Publisher"].str.contains(publisher_filter, case=False) &
+                     df["Book Title"].str.contains(title_filter, case=False) &
+                     (df["Genre"] == genre_filter if genre_filter else True) &
+                     df["Borrow Date"].between(*pd.to_datetime(borrow_date_filter)) &
+                     df["Return Date"].between(*pd.to_datetime(return_date_filter))]
+
+    # Display the filtered data in a table
+    st.table(df_filtered)
+
+    # Calculate statistics
+    most_borrowed_book = df_filtered['Book Title'].value_counts().idxmax()
+    avg_books_per_borrower = df_filtered['Borrower'].value_counts().mean()
+    most_frequent_borrower = df_filtered['Borrower'].value_counts().idxmax()
+    most_borrowed_genre = df_filtered['Genre'].value_counts().idxmax()
+    most_borrowed_author = df_filtered['Author'].value_counts().idxmax()
+    most_borrowed_publisher = df_filtered['Publisher'].value_counts().idxmax()
+
+    # Display statistics
+    st.subheader("Statistics")
+    st.write("The following statistics are based on the filtered data, in case of a tie the first value which appears will be returned:")
+    st.markdown(f"* Title of the Book Whose Most Copies are Borrowed: {most_borrowed_book}")
+    st.markdown(f"* Average Number of Books Borrowed Per Borrower: {avg_books_per_borrower:.2f}")
+    st.markdown(f"* Borrower Who Borrowed Most Books: {most_frequent_borrower}")
+    st.markdown(f"* Most Borrowed Genre: {most_borrowed_genre}")
+    st.markdown(f"* Most Borrowed Author: {most_borrowed_author}")
+    st.markdown(f"* Most Borrowed Publisher: {most_borrowed_publisher}")
 
 def main():
     st.title("Library Management System")
