@@ -370,46 +370,19 @@ def remove_book_copies():
 def view_book_copies():
     st.header("View Book Copies")
 
-    # Fetch the titles and copy counts of all books
-    cursor.execute("SELECT b.title, GROUP_CONCAT('Copy ', bc.copy_id ORDER BY bc.copy_id) AS all_copies, COUNT(bc.copy_id) "
-                   "FROM Books b "
-                   "JOIN BookCopies bc ON b.book_id = bc.book_id "
-                   "GROUP BY b.title")
-    books_and_copies = cursor.fetchall()
+    # Call the stored procedure
+    cursor.callproc("ViewBookCopies")
+
+    # Fetch data from the temporary table
+    cursor.execute("SELECT * FROM TempViewBookCopies")
+    table_data = cursor.fetchall()
 
     # Prepare data for the table
-    table_data = []
-    for book_title, all_copies, total_copies in books_and_copies:
-        # Fetch the names and count of checked out copies for the current book
-        cursor.execute("SELECT GROUP_CONCAT('Copy ', bc.copy_id ORDER BY bc.copy_id), COUNT(bc.copy_id) "
-                       "FROM Borrowings br "
-                       "JOIN BookCopies bc ON br.copy_id = bc.copy_id AND br.book_id = bc.book_id "
-                       "JOIN Books b ON bc.book_id = b.book_id "
-                       "WHERE b.title = %s", (book_title,))
-        result = cursor.fetchone()
-        checked_out_copies, checked_out_count = result[0], result[1]
-
-        # Fetch the names and count of available copies for the current book
-        cursor.execute("SELECT GROUP_CONCAT('Copy ', bc.copy_id ORDER BY bc.copy_id), COUNT(bc.copy_id) "
-                       "FROM BookCopies bc "
-                       "JOIN Books b ON bc.book_id = b.book_id "
-                       "LEFT JOIN Borrowings br ON br.copy_id = bc.copy_id AND br.book_id = bc.book_id "
-                       "WHERE b.title = %s AND br.copy_id IS NULL", (book_title,))
-        result = cursor.fetchone()
-        available_copies, available_count = result[0], result[1]
-
-        table_data.append({
-            "Title": book_title,
-            "All Copies": all_copies,
-            "Total Copies": total_copies,
-            "Checked Out Copies": checked_out_copies,
-            "Checked Out Count": checked_out_count,
-            "Available Copies": available_copies,
-            "Available Count": available_count
-        })
+    table_data = [{"Title": row[0], "All Copies": row[1], "Total Copies": row[2], "Checked Out Copies": row[3], "Checked Out Count": row[4], "Available Copies": row[5], "Available Count": row[6]} for row in table_data]
 
     # Display the data in a table
     st.table(table_data)
+
 
 def main_borrowings():
     st.sidebar.title("Select an option")
