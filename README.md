@@ -32,7 +32,7 @@ To set up the project, follow these steps:
     - Install MySQL Server and MySQL Workbench.
     - Create a new schema in MySQL Workbench and run the SQL scripts in the `sql` directory to create the necessary tables.
 
-4. Update the database connection details in `db_conn.py`.
+4. Update the database connection details in `run.py`.
 
     ```python
     db = mysql.connector.connect(
@@ -46,7 +46,7 @@ To set up the project, follow these steps:
 5. Run the Streamlit app.
 
     ```bash
-    streamlit run app.py
+    streamlit run run.py
     ```
 
 ## Usage
