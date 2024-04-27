@@ -10,6 +10,7 @@ def create_conn():
         user="root",
         password="1234",
         database="library",
+        isolation_level="SERIALIZABLE"
     )
     return conn
 
@@ -19,6 +20,7 @@ def create_conn():
 #         user=st.secrets["database"]["user"],
 #         password=st.secrets["database"]["password"],
 #         database=st.secrets["database"]["database"],
+#         isolation_level="SERIALIZABLE"
 #     )
 #     return conn
 
