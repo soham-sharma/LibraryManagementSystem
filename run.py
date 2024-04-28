@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 import pandas as pd
 import mysql.connector
 
@@ -22,7 +22,10 @@ def create_conn():
 
 db = create_conn()
 cursor = db.cursor()
+# Set the transaction isolation level to REPEATABLE READ as it is a
+# good balance between performance and consistency
 cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+
 
 def edit_lib_data():
     st.sidebar.title("Select fields to edit")
@@ -51,26 +54,38 @@ def main_books():
     elif choice == "View Books":
         view_books()
 
+
 def add_author():
     st.title("Add Author")
     name = st.text_input("Author Name", key="add_author_name")
     email = st.text_input("Author Email", key="add_author_email")
 
     if st.button("Add Author"):
-        # Prepare the SQL statement
-        add_author_query = "INSERT INTO Authors (name, email) VALUES (%s, %s)"
-        values = (name, email)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(add_author_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            add_author_query = "INSERT INTO Authors (name, email) VALUES (%s, %s)"
+            values = (name, email)
 
-        st.success("Author added successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(add_author_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Author added successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def edit_delete_author():
     st.title("Edit/Delete Author")
+
     cursor.execute("SELECT author_id, name FROM Authors")
     authors = cursor.fetchall()
     author_options = {author[0]: author[1] for author in authors}
@@ -82,28 +97,48 @@ def edit_delete_author():
     email = st.text_input("Changed Author Email", value=author_details[1], key="edit_author_email")
 
     if st.button("Edit Author"):
-        # Prepare the SQL statement
-        edit_author_query = "UPDATE Authors SET name = %s, email = %s WHERE author_id = %s"
-        values = (name, email, author_id)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(edit_author_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            edit_author_query = "UPDATE Authors SET name = %s, email = %s WHERE author_id = %s"
+            values = (name, email, author_id)
 
-        st.success("Author edited successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(edit_author_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Author edited successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
     if st.button("Delete Author"):
-        # Prepare the SQL statement
-        delete_author_query = "DELETE FROM Authors WHERE author_id = %s"
-        values = (author_id,)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(delete_author_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            delete_author_query = "DELETE FROM Authors WHERE author_id = %s"
+            values = (author_id,)
 
-        st.success("Author deleted successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(delete_author_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Author deleted successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def add_genre():
@@ -111,20 +146,31 @@ def add_genre():
     genre_name = st.text_input("Genre Name", key="add_genre_name")
 
     if st.button("Add Genre"):
-        # Prepare the SQL statement
-        add_genre_query = "INSERT INTO Genres (genre_name) VALUES (%s)"
-        values = (genre_name,)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(add_genre_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            add_genre_query = "INSERT INTO Genres (genre_name) VALUES (%s)"
+            values = (genre_name,)
 
-        st.success("Genre added successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(add_genre_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Genre added successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def edit_delete_genre():
     st.title("Edit/Delete Genre")
+
     cursor.execute("SELECT genre_id, genre_name FROM Genres")
     genres = cursor.fetchall()
     genre_options = {genre[0]: genre[1] for genre in genres}
@@ -135,28 +181,48 @@ def edit_delete_genre():
     genre_name = st.text_input("Changed Genre Name", value=genre_details[0], key="edit_genre_name")
 
     if st.button("Edit Genre"):
-        # Prepare the SQL statement
-        edit_genre_query = "UPDATE Genres SET genre_name = %s WHERE genre_id = %s"
-        values = (genre_name, genre_id)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(edit_genre_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            edit_genre_query = "UPDATE Genres SET genre_name = %s WHERE genre_id = %s"
+            values = (genre_name, genre_id)
 
-        st.success("Genre edited successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(edit_genre_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Genre edited successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
     if st.button("Delete Genre"):
-        # Prepare the SQL statement
-        delete_genre_query = "DELETE FROM Genres WHERE genre_id = %s"
-        values = (genre_id,)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(delete_genre_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            delete_genre_query = "DELETE FROM Genres WHERE genre_id = %s"
+            values = (genre_id,)
 
-        st.success("Genre deleted successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(delete_genre_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Genre deleted successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def add_publisher():
@@ -164,52 +230,85 @@ def add_publisher():
     publisher_name = st.text_input("Publisher Name", key="add_publisher_name")
 
     if st.button("Add Publisher"):
-        # Prepare the SQL statement
-        add_publisher_query = "INSERT INTO Publishers (publisher_name) VALUES (%s)"
-        values = (publisher_name,)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(add_publisher_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            add_publisher_query = "INSERT INTO Publishers (publisher_name) VALUES (%s)"
+            values = (publisher_name,)
 
-        st.success("Publisher added successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(add_publisher_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Publisher added successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def edit_delete_publisher():
     st.title("Edit/Delete Publisher")
+
     cursor.execute("SELECT publisher_id, publisher_name FROM Publishers")
     publishers = cursor.fetchall()
     publisher_options = {publisher[0]: publisher[1] for publisher in publishers}
-    publisher_id = st.selectbox("Publisher", options=list(publisher_options.keys()), format_func=lambda x: publisher_options[x])
+    publisher_id = st.selectbox("Publisher", options=list(publisher_options.keys()),
+                                format_func=lambda x: publisher_options[x])
 
     cursor.execute("SELECT publisher_name FROM Publishers WHERE publisher_id = %s", (publisher_id,))
     publisher_details = cursor.fetchone()
     publisher_name = st.text_input("Changed Publisher Name", value=publisher_details[0], key="edit_publisher_name")
 
     if st.button("Edit Publisher"):
-        # Prepare the SQL statement
-        edit_publisher_query = "UPDATE Publishers SET publisher_name = %s WHERE publisher_id = %s"
-        values = (publisher_name, publisher_id)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(edit_publisher_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            edit_publisher_query = "UPDATE Publishers SET publisher_name = %s WHERE publisher_id = %s"
+            values = (publisher_name, publisher_id)
 
-        st.success("Publisher edited successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(edit_publisher_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Publisher edited successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
     if st.button("Delete Publisher"):
-        # Prepare the SQL statement
-        delete_publisher_query = "DELETE FROM Publishers WHERE publisher_id = %s"
-        values = (publisher_id,)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(delete_publisher_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            delete_publisher_query = "DELETE FROM Publishers WHERE publisher_id = %s"
+            values = (publisher_id,)
 
-        st.success("Publisher deleted successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(delete_publisher_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Publisher deleted successfully!")
+            st.rerun()
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
+
 
 def view_authors_genres_publishers():
     """
@@ -217,38 +316,49 @@ def view_authors_genres_publishers():
     """
     st.header("View Authors, Genres, and Publishers")
 
-    # Fetch all authors
-    cursor.execute("SELECT author_id, name, email FROM Authors")
-    authors = cursor.fetchall()
+    try:
+        # Start a new transaction
+        cursor.execute("START TRANSACTION")
 
-    # Prepare data for the authors table
-    authors_table_data = [{"Author ID": author[0], "Name": author[1], "Email": author[2]} for author in authors]
+        # Fetch all authors
+        cursor.execute("SELECT author_id, name, email FROM Authors")
+        authors = cursor.fetchall()
 
-    # Display the authors table
-    st.subheader("Authors")
-    st.table(authors_table_data)
+        # Prepare data for the authors table
+        authors_table_data = [{"Author ID": author[0], "Name": author[1], "Email": author[2]} for author in authors]
 
-    # Fetch all genres
-    cursor.execute("SELECT genre_id, genre_name FROM Genres")
-    genres = cursor.fetchall()
+        # Display the authors table
+        st.subheader("Authors")
+        st.table(authors_table_data)
 
-    # Prepare data for the genres table
-    genres_table_data = [{"Genre ID": genre[0], "Name": genre[1]} for genre in genres]
+        # Fetch all genres
+        cursor.execute("SELECT genre_id, genre_name FROM Genres")
+        genres = cursor.fetchall()
 
-    # Display the genres table
-    st.subheader("Genres")
-    st.table(genres_table_data)
+        # Prepare data for the genres table
+        genres_table_data = [{"Genre ID": genre[0], "Name": genre[1]} for genre in genres]
 
-    # Fetch all publishers
-    cursor.execute("SELECT publisher_id, publisher_name FROM Publishers")
-    publishers = cursor.fetchall()
+        # Display the genres table
+        st.subheader("Genres")
+        st.table(genres_table_data)
 
-    # Prepare data for the publishers table
-    publishers_table_data = [{"Publisher ID": publisher[0], "Name": publisher[1]} for publisher in publishers]
+        # Fetch all publishers
+        cursor.execute("SELECT publisher_id, publisher_name FROM Publishers")
+        publishers = cursor.fetchall()
 
-    # Display the publishers table
-    st.subheader("Publishers")
-    st.table(publishers_table_data)
+        # Prepare data for the publishers table
+        publishers_table_data = [{"Publisher ID": publisher[0], "Name": publisher[1]} for publisher in publishers]
+
+        # Display the publishers table
+        st.subheader("Publishers")
+        st.table(publishers_table_data)
+
+        # Commit the transaction
+        db.commit()
+    except mysql.connector.Error as err:
+        # If an error occurred, rollback the transaction
+        db.rollback()
+        st.error(f"An error occurred: {err}")
 
 
 def edit_data():
@@ -268,28 +378,41 @@ def edit_data():
     elif page == "View Authors, Genres, and Publishers":
         view_authors_genres_publishers()
 
+
 def view_books():
     """
     Displays the list of books.
     """
     st.header("View Books")
 
-    # Fetch all books along with their author, genre, and publisher names
-    cursor.execute("""
-        SELECT Books.book_id, Books.title, Authors.name, Genres.genre_name, Publishers.publisher_name, Books.published_date 
-        FROM Books
-        INNER JOIN Authors ON Books.author_id = Authors.author_id
-        INNER JOIN Genres ON Books.genre_id = Genres.genre_id
-        INNER JOIN Publishers ON Books.publisher_id = Publishers.publisher_id
-    """)
-    books = cursor.fetchall()
+    try:
+        # Start a new transaction
+        cursor.execute("START TRANSACTION")
 
-    # Prepare data for the table
-    table_data = [{"Book ID": book[0], "Title": book[1], "Author": book[2], "Genre": book[3], "Publisher": book[4],
-                   "Published Date": book[5]} for book in books]
+        # Fetch all books along with their author, genre, and publisher names
+        cursor.execute("""
+            SELECT Books.book_id, Books.title, Authors.name, Genres.genre_name, Publishers.publisher_name, Books.published_date 
+            FROM Books
+            INNER JOIN Authors ON Books.author_id = Authors.author_id
+            INNER JOIN Genres ON Books.genre_id = Genres.genre_id
+            INNER JOIN Publishers ON Books.publisher_id = Publishers.publisher_id
+        """)
+        books = cursor.fetchall()
 
-    # Display the data in a table
-    st.table(table_data)
+        # Commit the transaction
+        cursor.execute("COMMIT")
+
+        # Prepare data for the table
+        table_data = [{"Book ID": book[0], "Title": book[1], "Author": book[2], "Genre": book[3], "Publisher": book[4],
+                       "Published Date": book[5]} for book in books]
+
+        # Display the data in a table
+        st.table(table_data)
+
+    except mysql.connector.Error as err:
+        # If an error occurred, rollback the transaction
+        cursor.execute("ROLLBACK")
+        st.error(f"An error occurred: {err}")
 
 
 def add_book():
@@ -321,15 +444,25 @@ def add_book():
     published_date = st.date_input("Published Date", key="add_book_published_date")
 
     if st.button("Add Book"):
-        # Prepare the SQL statement
-        add_book_query = "INSERT INTO Books (title, author_id, genre_id, publisher_id, published_date) VALUES (%s, %s, %s, %s, %s)"
-        values = (title, author_id, genre_id, publisher_id, published_date)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(add_book_query, values)
+            # Prepare the SQL statement
+            add_book_query = "INSERT INTO Books (title, author_id, genre_id, publisher_id, published_date) VALUES (%s, %s, %s, %s, %s)"
+            values = (title, author_id, genre_id, publisher_id, published_date)
 
-        st.success("Book added successfully!")
-        st.rerun()
+            # Execute the SQL statement
+            cursor.execute(add_book_query, values)
+
+            # Commit the transaction
+            cursor.execute("COMMIT")
+
+            st.success("Book added successfully!")
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            cursor.execute("ROLLBACK")
+            st.error(f"An error occurred: {err}")
 
 
 def edit_delete_book():
@@ -373,28 +506,48 @@ def edit_delete_book():
         published_date = st.date_input("Published Date", value=book_details[4], key="edit_book_published_date")
 
         if st.button("Save Changes"):
-            # Prepare the SQL statement
-            update_book_query = "UPDATE Books SET title = %s, author_id = %s, genre_id = %s, publisher_id = %s, published_date = %s WHERE book_id = %s"
-            values = (title, author_id, genre_id, publisher_id, published_date, selected_book_id)
+            try:
+                # Start a new transaction
+                cursor.execute("START TRANSACTION")
 
-            # Execute the SQL statement
-            cursor.execute(update_book_query, values)
-            db.commit()
+                # Prepare the SQL statement
+                update_book_query = "UPDATE Books SET title = %s, author_id = %s, genre_id = %s, publisher_id = %s, published_date = %s WHERE book_id = %s"
+                values = (title, author_id, genre_id, publisher_id, published_date, selected_book_id)
 
-            st.success("Book updated successfully!")
-            st.rerun()
+                # Execute the SQL statement
+                cursor.execute(update_book_query, values)
+
+                # Commit the transaction
+                cursor.execute("COMMIT")
+
+                st.success("Book updated successfully!")
+                st.rerun()
+            except mysql.connector.Error as err:
+                # If an error occurred, rollback the transaction
+                cursor.execute("ROLLBACK")
+                st.error(f"An error occurred: {err}")
 
         if st.button("Delete Book"):
-            # Prepare the SQL statement
-            delete_book_query = "DELETE FROM Books WHERE book_id = %s"
-            values = (selected_book_id,)
+            try:
+                # Start a new transaction
+                cursor.execute("START TRANSACTION")
 
-            # Execute the SQL statement
-            cursor.execute(delete_book_query, values)
-            db.commit()
+                # Prepare the SQL statement
+                delete_book_query = "DELETE FROM Books WHERE book_id = %s"
+                values = (selected_book_id,)
 
-            st.success("Book deleted successfully!")
-            st.rerun()
+                # Execute the SQL statement
+                cursor.execute(delete_book_query, values)
+
+                # Commit the transaction
+                cursor.execute("COMMIT")
+
+                st.success("Book deleted successfully!")
+                st.rerun()
+            except mysql.connector.Error as err:
+                # If an error occurred, rollback the transaction
+                cursor.execute("ROLLBACK")
+                st.error(f"An error occurred: {err}")
 
 
 def main_borrowers():
@@ -417,19 +570,30 @@ def add_borrower():
     phone_number = st.text_input("Phone Number")
 
     if st.button("Add Borrower"):
-        # Prepare the SQL statement
-        add_borrower_query = "INSERT INTO Borrowers (name, phone_number) VALUES (%s, %s)"
-        values = (name, phone_number)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(add_borrower_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            add_borrower_query = "INSERT INTO Borrowers (name, phone_number) VALUES (%s, %s)"
+            values = (name, phone_number)
 
-        st.success("Borrower added successfully.")
+            # Execute the SQL statement
+            cursor.execute(add_borrower_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Borrower added successfully.")
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def edit_delete_borrower():
     st.header("Edit/Delete a Borrower")
+
     cursor.execute("SELECT borrower_id, name FROM Borrowers")
     borrowers = cursor.fetchall()
     borrower_options = {borrower[0]: borrower[1] for borrower in borrowers}
@@ -443,41 +607,72 @@ def edit_delete_borrower():
         phone_number = st.text_input("Phone Number", value=borrower_details[1])
 
         if st.button("Save Changes"):
-            # Prepare the SQL statement
-            edit_borrower_query = "UPDATE Borrowers SET name = %s, phone_number = %s WHERE borrower_id = %s"
-            values = (name, phone_number, selected_borrower_id)
+            try:
+                # Start a new transaction
+                cursor.execute("START TRANSACTION")
 
-            # Execute the SQL statement
-            cursor.execute(edit_borrower_query, values)
-            db.commit()
+                # Prepare the SQL statement
+                edit_borrower_query = "UPDATE Borrowers SET name = %s, phone_number = %s WHERE borrower_id = %s"
+                values = (name, phone_number, selected_borrower_id)
 
-            st.success("Borrower details updated successfully.")
+                # Execute the SQL statement
+                cursor.execute(edit_borrower_query, values)
+
+                # Commit the transaction
+                db.commit()
+
+                st.success("Borrower details updated successfully.")
+            except mysql.connector.Error as err:
+                # If an error occurred, rollback the transaction
+                db.rollback()
+                st.error(f"An error occurred: {err}")
 
         if st.button("Delete Borrower"):
-            # Prepare the SQL statement
-            delete_borrower_query = "DELETE FROM Borrowers WHERE borrower_id = %s"
-            values = (selected_borrower_id,)
+            try:
+                # Start a new transaction
+                cursor.execute("START TRANSACTION")
 
-            # Execute the SQL statement
-            cursor.execute(delete_borrower_query, values)
-            db.commit()
+                # Prepare the SQL statement
+                delete_borrower_query = "DELETE FROM Borrowers WHERE borrower_id = %s"
+                values = (selected_borrower_id,)
 
-            st.success("Borrower deleted successfully.")
+                # Execute the SQL statement
+                cursor.execute(delete_borrower_query, values)
+
+                # Commit the transaction
+                db.commit()
+
+                st.success("Borrower deleted successfully.")
+            except mysql.connector.Error as err:
+                # If an error occurred, rollback the transaction
+                db.rollback()
+                st.error(f"An error occurred: {err}")
+
 
 
 def view_borrowers():
     st.header("View Borrowers")
+    try:
+        # Start a new transaction
+        cursor.execute("START TRANSACTION")
 
-    # Fetch all borrowers
-    cursor.execute("SELECT borrower_id, name, phone_number FROM Borrowers")
-    borrowers = cursor.fetchall()
+        # Fetch all borrowers
+        cursor.execute("SELECT borrower_id, name, phone_number FROM Borrowers")
+        borrowers = cursor.fetchall()
 
-    # Prepare data for the table
-    table_data = [{"Borrower ID": borrower[0], "Name": borrower[1], "Phone Number": borrower[2]} for borrower in
-                  borrowers]
+        # Commit the transaction
+        db.commit()
 
-    # Display the data in a table
-    st.table(table_data)
+        # Prepare data for the table
+        table_data = [{"Borrower ID": borrower[0], "Name": borrower[1], "Phone Number": borrower[2]} for borrower in
+                      borrowers]
+
+        # Display the data in a table
+        st.table(table_data)
+    except mysql.connector.Error as err:
+        # If an error occurred, rollback the transaction
+        db.rollback()
+        st.error(f"An error occurred: {err}")
 
 
 def main_book_copies():
@@ -872,7 +1067,8 @@ def generate_data_report():
 def main():
     st.title("Library Management System")
 
-    options = ["Book Data Management", "Book Management", "Borrower Management", "Edit Book Copies", "Borrowings", "Data Report"]
+    options = ["Book Data Management", "Book Management", "Borrower Management", "Edit Book Copies", "Borrowings",
+               "Data Report"]
     choice = st.sidebar.selectbox("Select an option", options)
 
     if choice == "Book Data Management":
