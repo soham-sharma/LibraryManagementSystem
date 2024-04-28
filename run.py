@@ -9,9 +9,10 @@ def create_conn():
         host="localhost",
         user="root",
         password="1234",
-        database="library",
-        isolation_level="SERIALIZABLE"
+        database="library"
     )
+    cursor = conn.cursor()
+    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE")
     return conn
 
 # def create_conn():
@@ -20,7 +21,6 @@ def create_conn():
 #         user=st.secrets["database"]["user"],
 #         password=st.secrets["database"]["password"],
 #         database=st.secrets["database"]["database"],
-#         isolation_level="SERIALIZABLE"
 #     )
 #     return conn
 
@@ -104,15 +104,25 @@ def add_book():
     published_date = st.date_input("Published Date", key="add_book_published_date")
 
     if st.button("Add Book"):
-        # Prepare the SQL statement
-        add_book_query = "INSERT INTO Books (title, author_id, genre_id, publisher_id, published_date) VALUES (%s, %s, %s, %s, %s)"
-        values = (title, author_id, genre_id, publisher_id, published_date)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(add_book_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            add_book_query = "INSERT INTO Books (title, author_id, genre_id, publisher_id, published_date) VALUES (%s, %s, %s, %s, %s)"
+            values = (title, author_id, genre_id, publisher_id, published_date)
 
-        st.success("Book added successfully!")
+            # Execute the SQL statement
+            cursor.execute(add_book_query, values)
+
+            # Commit the transaction
+            cursor.execute("COMMIT")
+
+            st.success("Book added successfully!")
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            cursor.execute("ROLLBACK")
+            st.error(f"An error occurred: {err}")
 
 def edit_delete_book():
     # Edit and delete books
