@@ -30,6 +30,7 @@ def create_conn():
     )
     return conn
 
+
 # def create_conn():
 #     connector = Connector()
 #     conn = connector.connect(
@@ -671,7 +672,6 @@ def edit_delete_borrower():
                 st.error(f"An error occurred: {err}")
 
 
-
 def view_borrowers():
     st.header("View Borrowers")
     try:
@@ -845,7 +845,6 @@ def remove_book_copies():
                 st.error(f"An error occurred: {err}")
 
 
-
 def view_book_copies():
     st.header("View Book Copies")
 
@@ -995,7 +994,8 @@ def resolve_borrowing():
             cursor.execute("START TRANSACTION")
 
             # Query the database to retrieve the selected borrowing
-            cursor.execute("SELECT copy_id, book_id, borrower_id FROM Borrowings WHERE borrowing_id = %s", (borrowing_id,))
+            cursor.execute("SELECT copy_id, book_id, borrower_id FROM Borrowings WHERE borrowing_id = %s",
+                           (borrowing_id,))
             selected_borrowing = cursor.fetchone()
 
             copy_id, book_id, borrower_id = selected_borrowing[0], selected_borrowing[1], selected_borrowing[2]
@@ -1015,7 +1015,6 @@ def resolve_borrowing():
             # If an error occurred, rollback the transaction
             db.rollback()
             st.error(f"An error occurred: {err}")
-
 
 
 def extend_borrowing():
@@ -1079,7 +1078,6 @@ def extend_borrowing():
             st.error(f"An error occurred: {err}")
 
 
-
 def main_data_report():
     st.sidebar.title("Select an option")
     page = st.sidebar.selectbox("Page", ["Generate Data Report"])
@@ -1138,16 +1136,26 @@ def generate_data_report():
     publisher_filter = st.text_input("Publisher")
     title_filter = st.text_input("Book Title")
     genre_filter = st.selectbox("Genre", options=[""] + df["Genre"].unique().tolist(), index=0)
-    borrow_date_filter = st.date_input("Borrow Date", value=[df["Borrow Date"].min(), df["Borrow Date"].max()])
-    return_date_filter = st.date_input("Return Date", value=[df["Return Date"].min(), df["Return Date"].max()])
+    # borrow_date_filter = st.date_input("Borrow Date", value=[df["Borrow Date"].min(), df["Borrow Date"].max()])
+    # return_date_filter = st.date_input("Return Date", value=[df["Return Date"].min(), df["Return Date"].max()])
+    borrow_start_date_filter = st.date_input("Borrow Start Date", value=df["Borrow Date"].min())
+    borrow_end_date_filter = st.date_input("Borrow End Date", value=df["Borrow Date"].max())
+
+    # Add two date input widgets for the start and end dates of the return period
+    return_start_date_filter = st.date_input("Return Start Date", value=df["Return Date"].min())
+    return_end_date_filter = st.date_input("Return End Date", value=df["Return Date"].max())
 
     # Filter the DataFrame based on the input widgets
     df_filtered = df[df["Author"].str.contains(author_filter, case=False) &
                      df["Publisher"].str.contains(publisher_filter, case=False) &
                      df["Book Title"].str.contains(title_filter, case=False) &
                      (df["Genre"] == genre_filter if genre_filter else True) &
-                     df["Borrow Date"].between(*pd.to_datetime(borrow_date_filter)) &
-                     df["Return Date"].between(*pd.to_datetime(return_date_filter))]
+                     df["Borrow Date"].between(pd.to_datetime(borrow_start_date_filter),
+                                               pd.to_datetime(borrow_end_date_filter)) &
+                     df["Return Date"].between(pd.to_datetime(return_start_date_filter),
+                                               pd.to_datetime(return_end_date_filter))]
+                    # df["Borrow Date"].between(*pd.to_datetime(borrow_date_filter)) &
+                    # df["Return Date"].between(*pd.to_datetime(return_date_filter))]
 
     # Display the filtered data in a table
     st.table(df_filtered)
