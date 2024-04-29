@@ -26,22 +26,22 @@ cursor = db.cursor()
 cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
 
 
-def refresh_conn():
-    global db
-    global cursor
-    while True:
-        # Wait for 30 minutes
-        time.sleep(1800)
-        # Close the existing connection
-        if db is not None:
-            db.close()
-        # Create a new connection
-        db = create_conn()
-        cursor = db.cursor()
-        cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
-
-
-threading.Thread(target=refresh_conn, daemon=True).start()
+# def refresh_conn():
+#     global db
+#     global cursor
+#     while True:
+#         # Wait for 30 minutes
+#         time.sleep(1800)
+#         # Close the existing connection
+#         if db is not None:
+#             db.close()
+#         # Create a new connection
+#         db = create_conn()
+#         cursor = db.cursor()
+#         cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+#
+#
+# threading.Thread(target=refresh_conn, daemon=True).start()
 
 
 def edit_lib_data():
