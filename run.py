@@ -2,23 +2,8 @@ import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
 import mysql.connector
-from google.cloud.sql.connector import Connector
+import time
 
-
-# def create_conn():
-#     conn = mysql.connector.connect(
-#         host=st.secrets["database"]["host"],
-#         user=st.secrets["database"]["user"],
-#         password=st.secrets["database"]["password"],
-#         database=st.secrets["database"]["database"],
-#     )
-#     # conn = mysql.connector.connect(
-#     #     host="localhost",
-#     #     user="root",
-#     #     password="1234",
-#     #     database="library"
-#     # )
-#     return conn
 
 def create_conn():
     conn = mysql.connector.connect(
@@ -28,19 +13,8 @@ def create_conn():
         password="wgvnGfUsLShmwCiSGkKYzVoKMWCCfsQL",
         database="railway"
     )
+    print("Connected to the database with ID:", conn.connection_id)
     return conn
-
-
-# def create_conn():
-#     connector = Connector()
-#     conn = connector.connect(
-#         "cs348-421504:us-central1:cs348-proj",  # Cloud SQL Instance Connection Name
-#         "mysql.connector",  # for MySQL
-#         user=st.secrets["database"]["user"],
-#         password=st.secrets["database"]["password"],
-#         db=st.secrets["database"]["database"],
-#     )
-#     return conn
 
 
 db = create_conn()
