@@ -2,22 +2,44 @@ import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
 import mysql.connector
+from google.cloud.sql.connector import Connector
 
+
+# def create_conn():
+#     conn = mysql.connector.connect(
+#         host=st.secrets["database"]["host"],
+#         user=st.secrets["database"]["user"],
+#         password=st.secrets["database"]["password"],
+#         database=st.secrets["database"]["database"],
+#     )
+#     # conn = mysql.connector.connect(
+#     #     host="localhost",
+#     #     user="root",
+#     #     password="1234",
+#     #     database="library"
+#     # )
+#     return conn
 
 def create_conn():
     conn = mysql.connector.connect(
-        host=st.secrets["database"]["host"],
-        user=st.secrets["database"]["user"],
-        password=st.secrets["database"]["password"],
-        database=st.secrets["database"]["database"],
+        host="monorail.proxy.rlwy.net",
+        port=33201,
+        user="root",
+        password="wgvnGfUsLShmwCiSGkKYzVoKMWCCfsQL",
+        database="railway"
     )
-    # conn = mysql.connector.connect(
-    #     host="localhost",
-    #     user="root",
-    #     password="1234",
-    #     database="library"
-    # )
     return conn
+
+# def create_conn():
+#     connector = Connector()
+#     conn = connector.connect(
+#         "cs348-421504:us-central1:cs348-proj",  # Cloud SQL Instance Connection Name
+#         "mysql.connector",  # for MySQL
+#         user=st.secrets["database"]["user"],
+#         password=st.secrets["database"]["password"],
+#         db=st.secrets["database"]["database"],
+#     )
+#     return conn
 
 
 db = create_conn()
@@ -691,19 +713,30 @@ def get_book_details(book_id):
     """
     Fetches the book details and number of copies for a given book_id.
     """
-    cursor.execute("SELECT b.title, a.name, g.genre_name, p.publisher_name, b.published_date "
-                   "FROM Books b "
-                   "JOIN Authors a ON b.author_id = a.author_id "
-                   "JOIN Genres g ON b.genre_id = g.genre_id "
-                   "JOIN Publishers p ON b.publisher_id = p.publisher_id "
-                   "WHERE b.book_id = %s",
-                   (book_id,))
-    book_details = cursor.fetchone()
+    try:
+        # Start a new transaction
+        cursor.execute("START TRANSACTION")
 
-    cursor.execute("SELECT COUNT(*) FROM BookCopies WHERE book_id = %s", (book_id,))
-    num_copies = cursor.fetchone()[0]
+        cursor.execute("SELECT b.title, a.name, g.genre_name, p.publisher_name, b.published_date "
+                       "FROM Books b "
+                       "JOIN Authors a ON b.author_id = a.author_id "
+                       "JOIN Genres g ON b.genre_id = g.genre_id "
+                       "JOIN Publishers p ON b.publisher_id = p.publisher_id "
+                       "WHERE b.book_id = %s",
+                       (book_id,))
+        book_details = cursor.fetchone()
 
-    return book_details, num_copies
+        cursor.execute("SELECT COUNT(*) FROM BookCopies WHERE book_id = %s", (book_id,))
+        num_copies = cursor.fetchone()[0]
+
+        # Commit the transaction
+        db.commit()
+
+        return book_details, num_copies
+    except mysql.connector.Error as err:
+        # If an error occurred, rollback the transaction
+        db.rollback()
+        print(f"An error occurred: {err}")
 
 
 def add_book_copies():
@@ -730,19 +763,29 @@ def add_book_copies():
         num_new_copies = st.number_input("Number of Copies to Add", min_value=1, value=1)
 
         if st.button("Add Copies"):
-            # Get the maximum copy_id for the selected book_id
-            cursor.execute("SELECT MAX(copy_id) FROM BookCopies WHERE book_id = %s", (selected_book_id,))
-            max_copy_id = cursor.fetchone()[0]
-            if max_copy_id is None:
-                max_copy_id = 0
+            try:
+                # Start a new transaction
+                cursor.execute("START TRANSACTION")
 
-            # Insert the new copies into the BookCopies table
-            add_copies_query = "INSERT INTO BookCopies (copy_id, book_id) VALUES (%s, %s)"
-            values = [(max_copy_id + i + 1, selected_book_id) for i in range(num_new_copies)]
-            cursor.executemany(add_copies_query, values)
-            db.commit()
+                # Get the maximum copy_id for the selected book_id
+                cursor.execute("SELECT MAX(copy_id) FROM BookCopies WHERE book_id = %s", (selected_book_id,))
+                max_copy_id = cursor.fetchone()[0]
+                if max_copy_id is None:
+                    max_copy_id = 0
 
-            st.success(f"Added {num_new_copies} copies to the book.")
+                # Insert the new copies into the BookCopies table
+                add_copies_query = "INSERT INTO BookCopies (copy_id, book_id) VALUES (%s, %s)"
+                values = [(max_copy_id + i + 1, selected_book_id) for i in range(num_new_copies)]
+                cursor.executemany(add_copies_query, values)
+
+                # Commit the transaction
+                db.commit()
+
+                st.success(f"Added {num_new_copies} copies to the book.")
+            except mysql.connector.Error as err:
+                # If an error occurred, rollback the transaction
+                db.rollback()
+                st.error(f"An error occurred: {err}")
 
 
 def remove_book_copies():
@@ -783,32 +826,54 @@ def remove_book_copies():
                                          format_func=lambda x: f"Copy {x}")
 
         if st.button("Remove Copies"):
-            # Remove the selected copies from the BookCopies table
-            remove_copies_query = "DELETE FROM BookCopies WHERE book_id = %s AND copy_id = %s"
-            values = [(selected_book_id, copy_id) for copy_id in selected_copies]
-            cursor.executemany(remove_copies_query, values)
-            db.commit()
+            try:
+                # Start a new transaction
+                cursor.execute("START TRANSACTION")
 
-            st.success(f"Removed {len(selected_copies)} copies from the book.")
+                # Remove the selected copies from the BookCopies table
+                remove_copies_query = "DELETE FROM BookCopies WHERE book_id = %s AND copy_id = %s"
+                values = [(selected_book_id, copy_id) for copy_id in selected_copies]
+                cursor.executemany(remove_copies_query, values)
+
+                # Commit the transaction
+                db.commit()
+
+                st.success(f"Removed {len(selected_copies)} copies from the book.")
+            except mysql.connector.Error as err:
+                # If an error occurred, rollback the transaction
+                db.rollback()
+                st.error(f"An error occurred: {err}")
+
 
 
 def view_book_copies():
     st.header("View Book Copies")
 
-    # Call the stored procedure
-    cursor.callproc("ViewBookCopies")
+    try:
+        # Start a new transaction
+        cursor.execute("START TRANSACTION")
 
-    # Fetch data from the temporary table
-    cursor.execute("SELECT * FROM TempViewBookCopies")
-    table_data = cursor.fetchall()
+        # Call the stored procedure
+        cursor.callproc("ViewBookCopies")
 
-    # Prepare data for the table
-    table_data = [{"Title": row[0], "All Copies": row[1], "Total Copies": row[2], "Checked Out Copies": row[3],
-                   "Checked Out Count": row[4], "Available Copies": row[5], "Available Count": row[6]} for row in
-                  table_data]
+        # Fetch data from the temporary table
+        cursor.execute("SELECT * FROM TempViewBookCopies")
+        table_data = cursor.fetchall()
 
-    # Display the data in a table
-    st.table(table_data)
+        # Commit the transaction
+        db.commit()
+
+        # Prepare data for the table
+        table_data = [{"Title": row[0], "All Copies": row[1], "Total Copies": row[2], "Checked Out Copies": row[3],
+                       "Checked Out Count": row[4], "Available Copies": row[5], "Available Count": row[6]} for row in
+                      table_data]
+
+        # Display the data in a table
+        st.table(table_data)
+    except mysql.connector.Error as err:
+        # If an error occurred, rollback the transaction
+        db.rollback()
+        st.error(f"An error occurred: {err}")
 
 
 def main_borrowings():
@@ -872,15 +937,25 @@ def create_new_borrowing():
     return_date = st.date_input("Return Date", value=return_date)
 
     if st.button("Create Borrowing"):
-        # Prepare the SQL statement
-        create_borrowing_query = "INSERT INTO Borrowings (copy_id, book_id, borrower_id, borrow_date, return_date) VALUES (%s, %s, %s, %s, %s)"
-        values = (copy_id, book_id, borrower_id, borrow_date, return_date)
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        # Execute the SQL statement
-        cursor.execute(create_borrowing_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            create_borrowing_query = "INSERT INTO Borrowings (copy_id, book_id, borrower_id, borrow_date, return_date) VALUES (%s, %s, %s, %s, %s)"
+            values = (copy_id, book_id, borrower_id, borrow_date, return_date)
 
-        st.success("Borrowing created successfully!")
+            # Execute the SQL statement
+            cursor.execute(create_borrowing_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Borrowing created successfully!")
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
 
 
 def resolve_borrowing():
@@ -915,21 +990,32 @@ def resolve_borrowing():
             st.error("Invalid Borrowing ID.")
             return
 
-        # Query the database to retrieve the selected borrowing
-        cursor.execute("SELECT copy_id, book_id, borrower_id FROM Borrowings WHERE borrowing_id = %s", (borrowing_id,))
-        selected_borrowing = cursor.fetchone()
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        copy_id, book_id, borrower_id = selected_borrowing[0], selected_borrowing[1], selected_borrowing[2]
+            # Query the database to retrieve the selected borrowing
+            cursor.execute("SELECT copy_id, book_id, borrower_id FROM Borrowings WHERE borrowing_id = %s", (borrowing_id,))
+            selected_borrowing = cursor.fetchone()
 
-        # Prepare the SQL statement
-        resolve_borrowing_query = "DELETE FROM Borrowings WHERE borrowing_id = %s"
-        values = (borrowing_id,)
+            copy_id, book_id, borrower_id = selected_borrowing[0], selected_borrowing[1], selected_borrowing[2]
 
-        # Execute the SQL statement
-        cursor.execute(resolve_borrowing_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            resolve_borrowing_query = "DELETE FROM Borrowings WHERE borrowing_id = %s"
+            values = (borrowing_id,)
 
-        st.success("Borrowing resolved successfully!")
+            # Execute the SQL statement
+            cursor.execute(resolve_borrowing_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Borrowing resolved successfully!")
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
+
 
 
 def extend_borrowing():
@@ -963,24 +1049,35 @@ def extend_borrowing():
             st.error("Invalid Borrowing ID.")
             return
 
-        # Query the database to retrieve the selected borrowing
-        cursor.execute("SELECT return_date FROM Borrowings WHERE borrowing_id = %s", (borrowing_id,))
-        selected_borrowing = cursor.fetchone()
+        try:
+            # Start a new transaction
+            cursor.execute("START TRANSACTION")
 
-        return_date = selected_borrowing[0]
+            # Query the database to retrieve the selected borrowing
+            cursor.execute("SELECT return_date FROM Borrowings WHERE borrowing_id = %s", (borrowing_id,))
+            selected_borrowing = cursor.fetchone()
 
-        # Calculate the new return date by adding 14 days to the current return date
-        new_return_date = return_date + timedelta(days=14)
+            return_date = selected_borrowing[0]
 
-        # Prepare the SQL statement
-        extend_borrowing_query = "UPDATE Borrowings SET return_date = %s WHERE borrowing_id = %s"
-        values = (new_return_date, borrowing_id)
+            # Calculate the new return date by adding 14 days to the current return date
+            new_return_date = return_date + timedelta(days=14)
 
-        # Execute the SQL statement
-        cursor.execute(extend_borrowing_query, values)
-        db.commit()
+            # Prepare the SQL statement
+            extend_borrowing_query = "UPDATE Borrowings SET return_date = %s WHERE borrowing_id = %s"
+            values = (new_return_date, borrowing_id)
 
-        st.success("Borrowing extended successfully!")
+            # Execute the SQL statement
+            cursor.execute(extend_borrowing_query, values)
+
+            # Commit the transaction
+            db.commit()
+
+            st.success("Borrowing extended successfully!")
+        except mysql.connector.Error as err:
+            # If an error occurred, rollback the transaction
+            db.rollback()
+            st.error(f"An error occurred: {err}")
+
 
 
 def main_data_report():
@@ -994,12 +1091,25 @@ def main_data_report():
 def generate_data_report():
     st.title("Checked Out Books Data Report")
 
-    # Call the stored procedure
-    cursor.callproc('GenerateDataReport')
+    try:
+        # Start a new transaction
+        cursor.execute("START TRANSACTION")
 
-    # Fetch data from the temporary table
-    cursor.execute("SELECT * FROM TempReport")
-    data = cursor.fetchall()
+        # Call the stored procedure
+        cursor.callproc('GenerateDataReport')
+
+        # Fetch data from the temporary table
+        cursor.execute("SELECT * FROM TempReport")
+        data = cursor.fetchall()
+
+        # Commit the transaction
+        db.commit()
+
+    except mysql.connector.Error as err:
+        # If an error occurred, rollback the transaction
+        db.rollback()
+        st.error(f"An error occurred: {err}")
+        return  # Exit the function
 
     # Prepare data for the table
     table_data = []
@@ -1016,8 +1126,6 @@ def generate_data_report():
             "Borrower": borrower
         })
 
-    # # Display the data in a table
-    # st.table(table_data)
     # Create a DataFrame from the fetched data
     df = pd.DataFrame(table_data)
 

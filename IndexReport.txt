@@ -35,3 +35,42 @@ This index would speed up the following queries:
 - In the `create_new_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to create a new borrowing.
 - In the `resolve_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to resolve a borrowing.
 - In the `extend_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to extend a borrowing.
+
+
+1. Index on Books (book_id)
+
+This index would speed up the following queries:
+
+- In the `get_book_details()` function, the `book_id` is used to fetch book details.
+- In the `add_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
+- In the `remove_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
+- In the `view_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
+- In the `create_new_borrowing()` function, the `book_id` is used to fetch book details.
+- In the `extend_borrowing()` function, the `book_id` is used to fetch book details.
+
+2. Index on Borrowers (borrower_id)
+
+This index would speed up the following queries:
+
+- In the `create_new_borrowing()` function, the `borrower_id` is used to fetch borrower details.
+- In the `resolve_borrowing()` function, the `borrower_id` is used to fetch borrower details.
+- In the `extend_borrowing()` function, the `borrower_id` is used to fetch borrower details.
+
+3. Index on BookCopies (copy_id, book_id)
+
+This index would speed up the following queries:
+
+- In the `add_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- In the `remove_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- In the `view_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- In the `create_new_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- In the `resolve_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- In the `extend_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+
+4. Index on Borrowings (borrowing_id, copy_id, book_id, borrower_id)
+
+This index would speed up the following queries:
+
+- In the `create_new_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to create a new borrowing.
+- In the `resolve_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to resolve a borrowing.
+- In the `extend_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to extend a borrowing.
