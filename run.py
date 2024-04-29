@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import mysql.connector
 import time
+import threading
 
 
 def create_conn():
@@ -22,6 +23,24 @@ cursor = db.cursor()
 # Set the transaction isolation level to REPEATABLE READ as it is a
 # good balance between performance and consistency
 cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+
+
+def refresh_conn():
+    global db
+    global cursor
+    while True:
+        # Wait for 30 minutes
+        time.sleep(1800)
+        # Close the existing connection
+        if db is not None:
+            db.close()
+        # Create a new connection
+        db = create_conn()
+        cursor = db.cursor()
+        cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+
+
+threading.Thread(target=refresh_conn, daemon=True).start()
 
 
 def edit_lib_data():
@@ -1128,8 +1147,8 @@ def generate_data_report():
                                                pd.to_datetime(borrow_end_date_filter)) &
                      df["Return Date"].between(pd.to_datetime(return_start_date_filter),
                                                pd.to_datetime(return_end_date_filter))]
-                    # df["Borrow Date"].between(*pd.to_datetime(borrow_date_filter)) &
-                    # df["Return Date"].between(*pd.to_datetime(return_date_filter))]
+    # df["Borrow Date"].between(*pd.to_datetime(borrow_date_filter)) &
+    # df["Return Date"].between(*pd.to_datetime(return_date_filter))]
 
     # Display the filtered data in a table
     st.table(df_filtered)
