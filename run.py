@@ -4,6 +4,7 @@ import pandas as pd
 import mysql.connector
 import time
 import threading
+import os
 
 
 def create_conn():
@@ -14,7 +15,7 @@ def create_conn():
         password="wgvnGfUsLShmwCiSGkKYzVoKMWCCfsQL",
         database="railway"
     )
-    print("Connected to the database with ID:", conn.connection_id)
+    os.write(1, f"Connected to the database with ID: {conn.connection_id}\n".encode())
     return conn
 
 
