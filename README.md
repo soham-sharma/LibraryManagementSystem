@@ -30,7 +30,7 @@ To set up the project, follow these steps:
 3. Set up the MySQL database.
 
     - Install MySQL Server and MySQL Workbench.
-    - Create a new schema in MySQL Workbench and run the SQL scripts in the `sql` directory to create the necessary tables.
+    - Create a new schema in MySQL Workbench and run the SQL scripts in the `sql` directory to create the necessary tables, indexes and stored procedures.
 
 4. Update the database connection details in `run.py`.
 
