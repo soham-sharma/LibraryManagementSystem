@@ -2,8 +2,8 @@ import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
 import mysql.connector
-import time
-import threading
+# import time
+# import threading
 import os
 
 
@@ -1122,8 +1122,8 @@ def generate_data_report():
     df = pd.DataFrame(table_data)
 
     # Convert the 'Borrow Date' and 'Return Date' columns to datetime
-    df['Borrow Date'] = pd.to_datetime(df['Borrow Date'])
-    df['Return Date'] = pd.to_datetime(df['Return Date'])
+    df['Borrow Date'] = pd.to_datetime(df['Borrow Date']).dt.date
+    df['Return Date'] = pd.to_datetime(df['Return Date']).dt.date
 
     # Create input widgets for the filters
     author_filter = st.text_input("Author")
@@ -1144,10 +1144,8 @@ def generate_data_report():
                      df["Publisher"].str.contains(publisher_filter, case=False) &
                      df["Book Title"].str.contains(title_filter, case=False) &
                      (df["Genre"] == genre_filter if genre_filter else True) &
-                     df["Borrow Date"].between(pd.to_datetime(borrow_start_date_filter),
-                                               pd.to_datetime(borrow_end_date_filter)) &
-                     df["Return Date"].between(pd.to_datetime(return_start_date_filter),
-                                               pd.to_datetime(return_end_date_filter))]
+                     df["Borrow Date"].between(borrow_start_date_filter, borrow_end_date_filter) &
+                     df["Return Date"].between(return_start_date_filter, return_end_date_filter)]
     # df["Borrow Date"].between(*pd.to_datetime(borrow_date_filter)) &
     # df["Return Date"].between(*pd.to_datetime(return_date_filter))]
 
