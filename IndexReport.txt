@@ -65,4 +65,4 @@ This query has a WHERE clause on the `publisher_id` column, so an index on `publ
 This query has a WHERE clause on the `publisher_id` column, so an index on `publisher_id` would speed up the lookup of the specific publisher to delete.
 
 
-Overall, adding these indexes would improve the performance of the queries mentioned above by
+Overall, adding these indexes would improve the performance of the queries mentioned above by being able to quickly access records related to field from disk.
