@@ -2,75 +2,67 @@
 
 This index would speed up the following queries:
 
-- In the `get_book_details()` function, the `book_id` is used to fetch book details.
-- In the `add_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
-- In the `remove_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
-- In the `view_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
-- In the `create_new_borrowing()` function, the `book_id` is used to fetch book details.
-- In the `extend_borrowing()` function, the `book_id` is used to fetch book details.
+- "UPDATE Books SET title = %s, author_id = %s, genre_id = %s, publisher_id = %s, published_date = %s WHERE book_id = %s"
+This query has a WHERE clause on the `book_id` column, so an index on `book_id` would speed up the lookup of the specific book to update.
+- "DELETE FROM Books WHERE book_id = %s"
+This query has a WHERE clause on the `book_id` column, so an index on `book_id` would speed up the lookup of the specific book to delete.
+- "SELECT b.title, a.name, g.genre_name, p.publisher_name, b.published_date "
+"FROM Books b "
+"JOIN Authors a ON b.author_id = a.author_id "
+"JOIN Genres g ON b.genre_id = g.genre_id "
+"JOIN Publishers p ON b.publisher_id = p.publisher_id "
+"WHERE b.book_id = %s"
+This query has a WHERE clause on the `book_id` column, so an index on `book_id` would speed up the lookup of the specific book details.
+- "SELECT title FROM Books WHERE book_id = %s"
+This query has a WHERE clause on the `book_id` column, so an index on `book_id` would speed up the lookup of the specific book title.
+
 
 2. Index on Borrowers (borrower_id)
 
 This index would speed up the following queries:
 
-- In the `create_new_borrowing()` function, the `borrower_id` is used to fetch borrower details.
-- In the `resolve_borrowing()` function, the `borrower_id` is used to fetch borrower details.
-- In the `extend_borrowing()` function, the `borrower_id` is used to fetch borrower details.
+- "SELECT name, phone_number FROM Borrowers WHERE borrower_id = %s"
+This query has a WHERE clause on the `borrower_id` column, so an index on `borrower_id` would speed up the lookup of the specific borrower details.
+- "UPDATE Borrowers SET name = %s, phone_number = %s WHERE borrower_id = %s"
+This query has a WHERE clause on the `borrower_id` column, so an index on `borrower_id` would speed up the lookup of the specific borrower to update.
+- "DELETE FROM Borrowers WHERE borrower_id = %s"
+This query has a WHERE clause on the `borrower_id` column, so an index on `borrower_id` would speed up the lookup of the specific borrower to delete.
+- "SELECT name FROM Borrowers WHERE borrower_id = %s"
+This query has a WHERE clause on the `borrower_id` column, so an index on `borrower_id` would speed up the lookup of the specific borrower name.
+
 
 3. Index on BookCopies (copy_id, book_id)
 
 This index would speed up the following queries:
 
-- In the `add_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `remove_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `view_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `create_new_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `resolve_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `extend_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- "SELECT bc.copy_id, bc.book_id "
+                       "FROM BookCopies bc "
+                       "JOIN Borrowings b ON bc.copy_id = b.copy_id AND bc.book_id = b.book_id "
+This query has a JOIN condition on the `copy_id` and `book_id` columns, so an index on these columns would speed up the join operation.
+- "DELETE FROM BookCopies WHERE book_id = %s AND copy_id = %s"
+This query has a WHERE clause on the `book_id` and `copy_id` columns, so an index on these columns would speed up the lookup of the specific book copy to delete.
 
-4. Index on Borrowings (borrowing_id, copy_id, book_id, borrower_id)
-
-This index would speed up the following queries:
-
-- In the `create_new_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to create a new borrowing.
-- In the `resolve_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to resolve a borrowing.
-- In the `extend_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to extend a borrowing.
-
-
-1. Index on Books (book_id)
+4. Index on Genres (genre_id)
 
 This index would speed up the following queries:
 
-- In the `get_book_details()` function, the `book_id` is used to fetch book details.
-- In the `add_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
-- In the `remove_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
-- In the `view_book_copies()` function, the `book_id` is used to fetch book details and the number of copies.
-- In the `create_new_borrowing()` function, the `book_id` is used to fetch book details.
-- In the `extend_borrowing()` function, the `book_id` is used to fetch book details.
+- "SELECT genre_name FROM Genres WHERE genre_id = %s"
+This query has a WHERE clause on the `genre_id` column, so an index on `genre_id` would speed up the lookup of the specific genre name.
+- "UPDATE Genres SET genre_name = %s WHERE genre_id = %s"
+This query has a WHERE clause on the `genre_id` column, so an index on `genre_id` would speed up the lookup of the specific genre to update.
+- "DELETE FROM Genres WHERE genre_id = %s"
+This query has a WHERE clause on the `genre_id` column, so an index on `genre_id` would speed up the lookup of the specific genre to delete.
 
-2. Index on Borrowers (borrower_id)
-
-This index would speed up the following queries:
-
-- In the `create_new_borrowing()` function, the `borrower_id` is used to fetch borrower details.
-- In the `resolve_borrowing()` function, the `borrower_id` is used to fetch borrower details.
-- In the `extend_borrowing()` function, the `borrower_id` is used to fetch borrower details.
-
-3. Index on BookCopies (copy_id, book_id)
+5. Index on Publishers (publisher_id)
 
 This index would speed up the following queries:
 
-- In the `add_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `remove_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `view_book_copies()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `create_new_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `resolve_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
-- In the `extend_borrowing()` function, the `copy_id` and `book_id` are used to fetch book copy details.
+- "SELECT publisher_name FROM Publishers WHERE publisher_id = %s"
+This query has a WHERE clause on the `publisher_id` column, so an index on `publisher_id` would speed up the lookup of the specific publisher name.
+- "UPDATE Publishers SET publisher_name = %s WHERE publisher_id = %s"
+This query has a WHERE clause on the `publisher_id` column, so an index on `publisher_id` would speed up the lookup of the specific publisher to update.
+- "DELETE FROM Publishers WHERE publisher_id = %s"
+This query has a WHERE clause on the `publisher_id` column, so an index on `publisher_id` would speed up the lookup of the specific publisher to delete.
 
-4. Index on Borrowings (borrowing_id, copy_id, book_id, borrower_id)
 
-This index would speed up the following queries:
-
-- In the `create_new_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to create a new borrowing.
-- In the `resolve_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to resolve a borrowing.
-- In the `extend_borrowing()` function, the `borrowing_id`, `copy_id`, `book_id`, and `borrower_id` are used to extend a borrowing.
+Overall, adding these indexes would improve the performance of the queries mentioned above by
